@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: If_else
+    id: TestBed
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -32,37 +32,40 @@ options:
     state: enabled
 
 blocks:
-- name: frequency
-  id: variable_qtgui_range
+- name: cent_fre
+  id: variable
   parameters:
     comment: ''
-    gui_hint: ''
-    label: ''
-    min_len: '200'
-    orient: QtCore.Qt.Horizontal
-    rangeType: float
-    start: '0'
-    step: '100'
-    stop: 6e9
-    value: 1e3
-    widget: counter_slider
+    value: 2.4e9
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 88.0]
+    coordinate: [592, 88.0]
     rotation: 0
-    state: enabled
+    state: true
+- name: frequency
+  id: variable
+  parameters:
+    comment: ''
+    value: '1000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [712, 96.0]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
     comment: ''
-    value: '128000'
+    value: '400000'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [288, 88.0]
+    coordinate: [296, 72.0]
     rotation: 0
     state: enabled
 - name: analog_sig_source_x_0
@@ -87,19 +90,100 @@ blocks:
     coordinate: [280, 292.0]
     rotation: 0
     state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'True'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'True'
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 652.0]
+    rotation: 0
+    state: disabled
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
     affinity: ''
     alias: ''
-    bw: 40e6
+    bw: samp_rate
     comment: ''
     fc: '0'
     fftsize: '1024'
     gui_hint: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    name: '""'
+    name: '"Signal detect"'
     plotconst: 'True'
     plotfreq: 'True'
     plottime: 'True'
@@ -113,7 +197,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [384, 568.0]
+    coordinate: [400, 464.0]
     rotation: 0
     state: true
 - name: qtgui_time_sink_x_1
@@ -169,7 +253,7 @@ blocks:
     marker7: '-1'
     marker8: '-1'
     marker9: '-1'
-    name: '"signal generate"'
+    name: '"Signal generate"'
     nconnections: '1'
     size: '1024'
     srate: samp_rate
@@ -210,7 +294,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 216.0]
+    coordinate: [552, 208.0]
     rotation: 0
     state: enabled
 - name: uhd_usrp_sink_0
@@ -250,7 +334,7 @@ blocks:
     ant7: ''
     ant8: ''
     ant9: ''
-    bw0: 22e6
+    bw0: '0'
     bw1: '0'
     bw10: '0'
     bw11: '0'
@@ -282,7 +366,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    center_freq0: 2.4e9
+    center_freq0: cent_fre
     center_freq1: '0'
     center_freq10: '0'
     center_freq11: '0'
@@ -314,7 +398,7 @@ blocks:
     center_freq7: '0'
     center_freq8: '0'
     center_freq9: '0'
-    clock_rate: '0.0'
+    clock_rate: 0e0
     clock_source0: ''
     clock_source1: ''
     clock_source2: ''
@@ -326,7 +410,7 @@ blocks:
     comment: ''
     dev_addr: '"serial=314FA63"'
     dev_args: '""'
-    gain0: '0'
+    gain0: '50'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -487,7 +571,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 352.0]
+    coordinate: [568, 332.0]
     rotation: 0
     state: enabled
 - name: uhd_usrp_source_1
@@ -527,7 +611,7 @@ blocks:
     ant7: ''
     ant8: ''
     ant9: ''
-    bw0: 22e6
+    bw0: ''
     bw1: '0'
     bw10: '0'
     bw11: '0'
@@ -559,7 +643,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    center_freq0: '0'
+    center_freq0: cent_fre
     center_freq1: '0'
     center_freq10: '0'
     center_freq11: '0'
@@ -667,7 +751,7 @@ blocks:
     dc_offs_enb9: default
     dev_addr: '"serial=314FA74"'
     dev_args: '""'
-    gain0: '0'
+    gain0: '50'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -923,13 +1007,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 440.0]
+    coordinate: [176, 512.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_sig_source_x_0, '0', qtgui_time_sink_x_1, '0']
 - [analog_sig_source_x_0, '0', uhd_usrp_sink_0, '0']
+- [uhd_usrp_source_1, '0', qtgui_freq_sink_x_0, '0']
 - [uhd_usrp_source_1, '0', qtgui_sink_x_0, '0']
 
 metadata:
