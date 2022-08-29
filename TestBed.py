@@ -8,10 +8,10 @@
 # Title: Testbed
 # Author: Zhifan Jiang
 # Description: test
-# GNU Radio version: 3.9.3.0
+# GNU Radio version: 3.10.3.0
 
-from distutils.version import StrictVersion
 from operator import mod
+from packaging.version import Version as StrictVersion
 
 if __name__ == '__main__':
     import ctypes
@@ -28,8 +28,10 @@ from gnuradio import qtgui
 from gnuradio.filter import firdes
 import sip
 from gnuradio import analog
-from gnuradio import gr
+from gnuradio import blocks
+from gnuradio import fft
 from gnuradio.fft import window
+from gnuradio import gr
 import sys
 import signal
 from argparse import ArgumentParser
@@ -37,6 +39,7 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import uhd
 import time
+import TestBed_epy_block_0 as epy_block_0  # embedded python block
 
 
 from gnuradio import qtgui
@@ -64,6 +67,7 @@ class TestBed(gr.top_block, Qt.QWidget):
         self.top_layout = Qt.QVBoxLayout(self.top_widget)
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
+        self.current_channel = 0  # 当前所在第几频道
 
         self.settings = Qt.QSettings("GNU Radio", "TestBed")
 
@@ -81,13 +85,15 @@ class TestBed(gr.top_block, Qt.QWidget):
         ##################################################
         self.samp_rate = samp_rate = 400000
         self.frequency = frequency = 1000
+        self.fft_size = fft_size = 1024
         self.cent_fre = cent_fre = 2.4e9
+        self.amp = amp = 0
 
         ##################################################
         # Blocks
         ##################################################
         self.uhd_usrp_source_1 = uhd.usrp_source(
-            ",".join(("serial=314FA74", "")),
+            ",".join(("addr=192.168.10.6", "")),
             uhd.stream_args(
                 cpu_format="fc32",
                 args='',
@@ -95,11 +101,11 @@ class TestBed(gr.top_block, Qt.QWidget):
             ),
         )
         self.uhd_usrp_source_1.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_1.set_time_now(
-            uhd.time_spec(time.time()), uhd.ALL_MBOARDS)
+        # No synchronization enforced.
 
         self.uhd_usrp_source_1.set_center_freq(cent_fre, 0)
         self.uhd_usrp_source_1.set_antenna("TX/RX", 0)
+        self.uhd_usrp_source_1.set_bandwidth(2e7, 0)
         self.uhd_usrp_source_1.set_gain(50, 0)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
             ",".join(("serial=314FA63", "")),
@@ -111,8 +117,7 @@ class TestBed(gr.top_block, Qt.QWidget):
             '',
         )
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_time_now(
-            uhd.time_spec(time.time()), uhd.ALL_MBOARDS)
+        # No synchronization enforced.
 
         self.uhd_usrp_sink_0.set_center_freq(cent_fre, 0)
         self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
@@ -189,8 +194,14 @@ class TestBed(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(True)
 
         self.top_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.fft_vxx_0 = fft.fft_vcc(
+            fft_size, True, window.blackmanharris(fft_size), True, 1)
+        self.epy_block_0 = epy_block_0.blk(vlen=fft_size, top=self)
+        self.blocks_stream_to_vector_1 = blocks.stream_to_vector(
+            gr.sizeof_gr_complex*1, fft_size)
+        self.blocks_complex_to_mag_0 = blocks.complex_to_mag(fft_size)
         self.analog_sig_source_x_0 = analog.sig_source_c(
-            samp_rate, analog.GR_COS_WAVE, frequency, 1, 0, 0)
+            samp_rate, analog.GR_COS_WAVE, frequency, amp, 0, 0)
 
         ##################################################
         # Connections
@@ -199,6 +210,13 @@ class TestBed(gr.top_block, Qt.QWidget):
                      (self.qtgui_time_sink_x_1, 0))
         self.connect((self.analog_sig_source_x_0, 0),
                      (self.uhd_usrp_sink_0, 0))
+        self.connect((self.blocks_complex_to_mag_0, 0), (self.epy_block_0, 0))
+        self.connect((self.blocks_stream_to_vector_1, 0),
+                     (self.epy_block_0, 1))
+        self.connect((self.blocks_stream_to_vector_1, 0), (self.fft_vxx_0, 0))
+        self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_0, 0))
+        self.connect((self.uhd_usrp_source_1, 0),
+                     (self.blocks_stream_to_vector_1, 0))
         self.connect((self.uhd_usrp_source_1, 0), (self.qtgui_sink_x_0, 0))
 
     def closeEvent(self, event):
@@ -227,6 +245,13 @@ class TestBed(gr.top_block, Qt.QWidget):
         self.frequency = frequency
         self.analog_sig_source_x_0.set_frequency(self.frequency)
 
+    def get_fft_size(self):
+        return self.fft_size
+
+    def set_fft_size(self, fft_size):
+        self.fft_size = fft_size
+        self.epy_block_0.vlen = self.fft_size
+
     def get_cent_fre(self):
         return self.cent_fre
 
@@ -234,6 +259,24 @@ class TestBed(gr.top_block, Qt.QWidget):
         self.cent_fre = cent_fre
         self.uhd_usrp_sink_0.set_center_freq(self.cent_fre, 0)
         self.uhd_usrp_source_1.set_center_freq(self.cent_fre, 0)
+
+    def get_amp(self):
+        return self.amp
+
+    def set_amp(self, amp):
+        self.amp = amp
+        self.analog_sig_source_x_0.set_amplitude(self.amp)
+
+    def next_channel(self):
+        band_width = 20000000
+        self.current_channel = current_channel = mod(
+            self.current_channel + 1, 7)
+        cent_fre = self.cent_fre
+        if current_channel == 0:
+            cent_fre = cent_fre - 6*band_width
+        else:
+            cent_fre = cent_fre + band_width
+        self.set_cent_fre(cent_fre)
 
 
 def main(top_block_cls=TestBed, options=None):
@@ -258,18 +301,9 @@ def main(top_block_cls=TestBed, options=None):
     signal.signal(signal.SIGINT, sig_handler)
     signal.signal(signal.SIGTERM, sig_handler)
 
-    def timer_handler_generate():
-        array = [0, tb.get_frequency()]
-
-        def timer_handler():
-            print("handler execute: ", array[0])
-            array[0] = mod(array[0]+2000, 10000)
-            tb.set_frequency(array[0] + array[1])
-        return timer_handler
-
     timer = Qt.QTimer()
-    timer.start(1000)
-    timer.timeout.connect(timer_handler_generate())
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
 
     qapp.exec_()
 
